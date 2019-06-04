@@ -11,6 +11,7 @@ unsigned int left_counter = 0;
 bool odometry_state = false;
 
 unsigned int sensor_counter_left = 0;
+unsigned int pub_counter_left = 0;
 
 
 void getDirectionFromTopicX(const std_msgs::Int16 &pwm) {
@@ -62,11 +63,11 @@ void loop() {
   }
   node.spinOnce();*/
 
-  if (left_counter >= 10)
+  if (pub_counter_left >= 10)
   {
-    value_odometry_left.data = left_counter;
+    value_odometry_left.data = 4 * left_counter;
     odometry_pub_left.publish(&value_odometry_left);
-    left_counter = 0;
+    pub_counter_left = 0;
   }
   node.spinOnce();
 }
@@ -85,6 +86,7 @@ void counterLeft()
   if (sensor_counter_left >= 4)
   {
     sensor_counter_left = 0;
+    pub_counter_left++;
     left_counter++;
   }
 }
