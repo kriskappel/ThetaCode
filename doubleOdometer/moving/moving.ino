@@ -4,6 +4,9 @@
 #define pwmPinY 5
 #define pwmPinX 6
 #define stopped 135
+#define ledPin 13
+
+volatile byte state = HIGH;
 
 void getDirectionFromTopicX(const std_msgs::Int16 &pwm)
 {
@@ -21,10 +24,12 @@ ros::Subscriber<std_msgs::Int16> movement_y("channel_y", &getDirectionFromTopicY
 
 void setup()
 {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   pinMode(pwmPinY, OUTPUT);
+  pinMode(ledPin, OUTPUT);
   pinMode(pwmPinX, OUTPUT);
   analogWrite(pwmPinY, stopped);
+  digitalWrite(ledPin, state);
   analogWrite(pwmPinX, stopped);
   node.initNode();
   node.subscribe(movement_x);
@@ -43,5 +48,10 @@ void moveX(int pwm)
 
 void moveY(int pwm)
 {
+  if(pwm > 135)
+  {
+    state =  !state;
+    digitalWrite(ledPin, state);
+  }
   analogWrite(pwmPinY, pwm);
 }
