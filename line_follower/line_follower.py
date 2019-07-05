@@ -314,21 +314,25 @@ def nome_bonito(orig_frame):
 	if(angulo_centro == 0 and np.absolute(angulo_direita) > vals and np.absolute(angulo_esquerda) > vals):
 		girar = 'espere comando'
 		pub_movement(135, 135)
+
 	elif (angulo_centro != 0 and np.absolute(angulo_centro) < vals):
 		girar = 'siga em frente'
 		pub_movement(135, 165)
+
 	elif (angulo_centro !=0 and angulo_centro < -vals):
 		girar = 'esquerda'
-		pub_movement(170,135)
+		pub_movement(160,0)
 	elif (angulo_centro !=0 and angulo_centro > vals):
 		girar = 'direita'
-		pub_movement(100,135)
-	elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
+		pub_movement(105,0)
+
+	elif (angulo_centro == 0 and (np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
 		girar = 'direita'
-		pub_movement(100,135)
-	elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
+		pub_movement(105,135)
+	elif (angulo_centro == 0 and (np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
 		girar = 'esquerda'
-		pub_movement(170,135)
+		pub_movement(160,135)
+
 	else:
 		girar = girar
 		pub_movement(0, 0)
@@ -377,16 +381,21 @@ def nome_bonito(orig_frame):
 def pub_movement(pwm_x, pwm_y):
 	global movement_x 
 	global movement_y
-	if( pwm_x == 0 and pwm_y == 0):
+
+	# if( pwm_x == 0 and pwm_y == 0):
+	# 	pass
+	# else:
+	# 	movement_x = pwm_x
+	# 	movement_y = pwm_y
+
+	if( pwm_y == 0 ):
+		pass
+	else:
+		movement_y = pwm_y
+	if( pwm_x == 0 ):
 		pass
 	else:
 		movement_x = pwm_x
-		movement_y = pwm_y
-
-	# if( pwm_y == 0 ):
-	# 	pass
-	# else:
-	# 	movement_y = pwm_y
 
 	movex = rospy.Publisher('channel_x', Int16, queue_size=1)
 	movex.publish(movement_x)
