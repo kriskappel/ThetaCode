@@ -28,7 +28,7 @@ def nome_bonito(orig_frame):
 	font = cv2.FONT_HERSHEY_SIMPLEX
 
 	Comprimento_baixo_trans = N - 5
-	Comprimento_alto_trans = int(N/2) 
+	Comprimento_alto_trans = int(250) 
 	Largura_esquerda_trans = int(N*1/4)
 	Largura_direita_trans = int(N*3/4)
 
@@ -76,7 +76,7 @@ def nome_bonito(orig_frame):
 
 		#frame = cv2.GaussianBlur(orig_frame, (15, 15), 0)
 
-	pts1 = np.float32([[171,239+50],[428,234+50],[64,427+50],[527,415+50]]) # pontos da imagem original
+	pts1 = np.float32([[171,239+55],[428,234+55],[64,427+55],[527,415+55]]) # pontos da imagem original
 	pts2 = np.float32([[0,0],[N,0],[0,N],[N,N]]) # pontos da imagem corrigida
 
 	M = cv2.getPerspectiveTransform(pts1,pts2) # Cria a matriz de transformacao
@@ -319,16 +319,16 @@ def nome_bonito(orig_frame):
 		pub_movement(135, 165)
 	elif (angulo_centro !=0 and angulo_centro < -vals):
 		girar = 'esquerda'
-		pub_movement(135, 105)
+		pub_movement(170,135)
 	elif (angulo_centro !=0 and angulo_centro > vals):
 		girar = 'direita'
-		pub_movement(135, 165)
+		pub_movement(100,135)
 	elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
 		girar = 'direita'
-		pub_movement(135, 165)
+		pub_movement(100,135)
 	elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
 		girar = 'esquerda'
-		pub_movement(135, 105)
+		pub_movement(170,135)
 	else:
 		girar = girar
 		pub_movement(0, 0)
@@ -374,21 +374,24 @@ def nome_bonito(orig_frame):
 # video.release()
 # cv2.destroyAllWindows() 
 
-def pub_movement(pwm_x, pwm_y)
+def pub_movement(pwm_x, pwm_y):
 	global movement_x 
 	global movement_y
-
-	if( pwm_x == 0 and pwn_y == 0 ):
+	if( pwm_x == 0 and pwm_y == 0):
 		pass
 	else:
 		movement_x = pwm_x
 		movement_y = pwm_y
 
+	# if( pwm_y == 0 ):
+	# 	pass
+	# else:
+	# 	movement_y = pwm_y
+
 	movex = rospy.Publisher('channel_x', Int16, queue_size=1)
 	movex.publish(movement_x)
 	movey = rospy.Publisher('channel_y', Int16, queue_size=1)
 	movey.publish(movement_y)
-
 
 	
 
