@@ -5,6 +5,10 @@ from sensor_msgs.msg import Image
 import numpy as np
 from std_msgs.msg import Int16
 
+
+movement_x = 135
+movement_y = 135
+
 def passa_video(img):
 	bridge=CvBridge()
 
@@ -308,37 +312,26 @@ def nome_bonito(orig_frame):
 	# 	girar = 
 	girar = 0
 	if(angulo_centro == 0 and np.absolute(angulo_direita) > vals and np.absolute(angulo_esquerda) > vals):
-		movex = rospy.Publisher('channel_x', Int16, queue_size=1)
-		movex.publish(135)
-		movey = rospy.Publisher('channel_y', Int16, queue_size=1)
-		movey.publish(135)
-		girar = 'siga em frente'
+		girar = 'espere comando'
+		pub_movement(135, 135)
 	elif (angulo_centro != 0 and np.absolute(angulo_centro) < vals):
-		move = rospy.Publisher('channel_y', Int16, queue_size=1)
-		move.publish(165)
 		girar = 'siga em frente'
+		pub_movement(135, 165)
 	elif (angulo_centro !=0 and angulo_centro < -vals):
-		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-		move.publish(110)
 		girar = 'esquerda'
+		pub_movement(135, 105)
 	elif (angulo_centro !=0 and angulo_centro > vals):
-		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-		move.publish(160)
 		girar = 'direita'
+		pub_movement(135, 165)
 	elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
-		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-		move.publish(160)
 		girar = 'direita'
+		pub_movement(135, 165)
 	elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
-		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-		move.publish(110)
-		girar = 'esquerda'	
+		girar = 'esquerda'
+		pub_movement(135, 105)
 	else:
-		movex = rospy.Publisher('channel_x', Int16, queue_size=1)
-		movex.publish(135)
-		movey = rospy.Publisher('channel_y', Int16, queue_size=1)
-		movey.publish(135)
-		girar = 'frente'
+		girar = girar
+		pub_movement(0, 0)
 #        	if np.absolute(angulo_direita) < np.absolute(angulo_esquerda):
 #			girar = 'gire a direita'
 	#		else:
@@ -380,6 +373,24 @@ def nome_bonito(orig_frame):
         
 # video.release()
 # cv2.destroyAllWindows() 
+
+def pub_movement(pwm_x, pwm_y)
+	global movement_x 
+	global movement_y
+
+	if( pwm_x == 0 and pwn_y == 0 ):
+		pass
+	else:
+		movement_x = pwm_x
+		movement_y = pwm_y
+
+	movex = rospy.Publisher('channel_x', Int16, queue_size=1)
+	movex.publish(movement_x)
+	movey = rospy.Publisher('channel_y', Int16, queue_size=1)
+	movey.publish(movement_y)
+
+
+	
 
 
 if __name__ == "__main__":
