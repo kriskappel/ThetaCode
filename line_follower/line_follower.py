@@ -3,6 +3,7 @@ import cv2
 import rospy
 from sensor_msgs.msg import Image
 import numpy as np
+from std_msgs.msg import Int16
 
 def passa_video(img):
 	bridge=CvBridge()
@@ -74,9 +75,9 @@ def nome_bonito(orig_frame):
 	pts1 = np.float32([[171,239+50],[428,234+50],[64,427+50],[527,415+50]]) # pontos da imagem original
 	pts2 = np.float32([[0,0],[N,0],[0,N],[N,N]]) # pontos da imagem corrigida
 
-	M = cv2.getPerspectiveTransform(pts1,pts2) # Cria a matriz de transformação
+	M = cv2.getPerspectiveTransform(pts1,pts2) # Cria a matriz de transformacao
 	#print(M)
-	transform = cv2.warpPerspective(orig_frame,M,(N,N)) # Executa a trnasformação
+	transform = cv2.warpPerspective(orig_frame,M,(N,N)) # Executa a trnasformacao
 
 	hsv_transform = cv2.cvtColor(transform, cv2.COLOR_BGR2HSV)
 	low_blue = np.array([85, 50, 0])
@@ -85,7 +86,7 @@ def nome_bonito(orig_frame):
 
 	fechamento_trans = cv2.morphologyEx(mask_trans, cv2.MORPH_CLOSE, kernel)
 
-	# Inicio Linhas de Derivação Transform
+	# Inicio Linhas de Derivacao Transform
 	Linha_threshold_baixo_trans = fechamento_trans[Comprimento_baixo_trans].astype(np.int16) # Linha selecionada baixo
 	diff_inicial_baixo_trans = np.diff(Linha_threshold_baixo_trans)                                # Derivada da linha selecionada
 	pontos_maxmin_baixo_trans = np.where(np.logical_or(diff_inicial_baixo_trans > 200, diff_inicial_baixo_trans < -200)) # maximos e minimos da derivada
@@ -105,9 +106,9 @@ def nome_bonito(orig_frame):
 	diff_inicial_direita_trans = np.diff(Coluna_threshold_direita_trans)                                     # Derivada da linha selecionada
 	pontos_maxmin_direita_trans = np.where(np.logical_or(diff_inicial_direita_trans > 200, diff_inicial_direita_trans < -200)) # maximos e minimos da derivada
 	cv2.line(transform,(Largura_direita_trans,0),(Largura_direita_trans,N),(0,255,0),1) # Desenhar linha escaneada
-	# Fim Linhas de Derivação Transform
+	# Fim Linhas de Derivacao Transform
 
-# Início Derivadas Tranforms
+# Inicio Derivadas Tranforms
 	if len(pontos_maxmin_baixo_trans) > 0 and len(pontos_maxmin_baixo_trans[0]) > 1: # Se encontrou algo continua
 	        centro_da_linha_baixo_trans = int((pontos_maxmin_baixo_trans[0][0]+pontos_maxmin_baixo_trans[0][1])/2)
 	        cv2.circle(transform,(pontos_maxmin_baixo_trans[0][0], Comprimento_baixo_trans), 2, (255,0,0), -1)
@@ -136,7 +137,7 @@ def nome_bonito(orig_frame):
 	cbt_ant = cbt
 	cbt=(centro_da_linha_baixo_trans, Comprimento_baixo_trans)
 	
-	print("Centróide baixo trans", cbt)
+	# print("Centroide baixo trans", cbt)
 
 	if len(pontos_maxmin_alto_trans) > 0 and len(pontos_maxmin_alto_trans[0]) > 1: # Se encontrou algo continua
 	        centro_da_linha_alto_trans = int((pontos_maxmin_alto_trans[0][0]+pontos_maxmin_alto_trans[0][1])/2)
@@ -165,7 +166,7 @@ def nome_bonito(orig_frame):
 	        #num_de_pontos_perdidos += 1
 	cat_ant = cat
 	cat=(centro_da_linha_alto_trans,Comprimento_alto_trans)
-	print("Centróide alto trans: ", cat)
+	# print("Centroide alto trans: ", cat)
 
 	if len(pontos_maxmin_esquerda_trans) > 0 and len(pontos_maxmin_esquerda_trans[0]) > 1: # Se encontrou algo continua
 	        centro_da_coluna_esquerda_trans = int((pontos_maxmin_esquerda_trans[0][0]+pontos_maxmin_esquerda_trans[0][1])/2)
@@ -195,7 +196,7 @@ def nome_bonito(orig_frame):
 	        #num_de_pontos_perdidos += 1
 	cet_ant = cet
 	cet=(Largura_esquerda_trans, centro_da_coluna_esquerda_trans)
-	print("Centróide esquerda trans:", cet)
+	# print("Centroide esquerda trans:", cet)
 
 	if len(pontos_maxmin_direita_trans) > 0 and len(pontos_maxmin_direita_trans[0]) > 1: # Se encontrou algo continua
 	        centro_da_coluna_direita_trans = int((pontos_maxmin_direita_trans[0][0]+pontos_maxmin_direita_trans[0][1])/2)
@@ -226,7 +227,7 @@ def nome_bonito(orig_frame):
 	        #num_de_pontos_perdidos += 1
 	cdt_ant = cdt
 	cdt= (Largura_direita_trans, centro_da_coluna_direita_trans)
-	print("Centróide direita trans:", cdt)
+	# print("Centroide direita trans:", cdt)
 	# Fim Derivadas Transform
 
 	angulo_dir_ant = angulo_direita
@@ -242,11 +243,11 @@ def nome_bonito(orig_frame):
 		produto_interno_direita = vetor_direita[0]*vetor_unitario_direita[0] + vetor_direita[1]*vetor_unitario_direita[1]
 		alpha = np.arccos(produto_interno_direita/(norm_vet_dir + np.sqrt(np.power(vetor_unitario_direita[0],2)+np.power(vetor_unitario_direita[1],2))))*180/np.pi
 		angulo_direita = 90 - alpha
-		print('angulo direita', angulo_direita)
+		# print('angulo direita', angulo_direita)
 		girar_direita = 'Girar Direita'
 	else:
 		angulo_direita = 0
-		print('angulo direita', angulo_direita)
+		# print('angulo direita', angulo_direita)
 		girar_direita = ' '
 
 	vetor_centro = ((cat[0]) - (cbt[0]), (cat[1]) - (cbt[1]))
@@ -256,11 +257,11 @@ def nome_bonito(orig_frame):
 		produto_interno_centro = vetor_centro[0]*vetor_unitario_centro[0] + vetor_centro[1]*vetor_unitario_centro[1]
 		alpha = np.arccos(produto_interno_centro/(norm_vet_cent + np.sqrt(np.power(vetor_unitario_centro[0],2)+np.power(vetor_unitario_centro[1],2))))*180/np.pi
 		angulo_centro = 90 - alpha
-		print('angulo centro', angulo_centro)
+		# print('angulo centro', angulo_centro)
 #		girar_centro = 'Girar Centro'
 	else:
 		angulo_centro = 0
-		print('angulo centro', angulo_centro)
+		# print('angulo centro', angulo_centro)
 #		girar_centro = ' '
 
 	vetor_esquerda = ((cet[0]) - (cbt[0]), (cet[1]) - (cbt[1]))
@@ -270,11 +271,11 @@ def nome_bonito(orig_frame):
 		produto_interno_esquerda = vetor_esquerda[0]*vetor_unitario_esquerda[0] + vetor_esquerda[1]*vetor_unitario_esquerda[1]
 		alpha = np.arccos(produto_interno_esquerda/(norm_vet_esq + np.sqrt(np.power(vetor_unitario_esquerda[0],2)+np.power(vetor_unitario_esquerda[1],2))))*180/np.pi
 		angulo_esquerda = 90 - alpha
-		print('angulo esquerda', angulo_esquerda)
+		# print('angulo esquerda', angulo_esquerda)
 		girar_esquerda = 'Girar esquerda'
 	else:
 		angulo_esquerda = 0
-		print('angulo esquerda', angulo_esquerda)
+		# print('angulo esquerda', angulo_esquerda)
 		girar_esquerda = ' '
 
 #	if np.absolute(angulo_direita - angulo_dir_ant) < vals-2:
@@ -293,39 +294,51 @@ def nome_bonito(orig_frame):
 #		angulo_esquerda = angulo_esquerda 	
                      	
 #	if angulo_centro == 0:	
-	if (angulo_centro !=0 and np.absolute(angulo_centro) < vals):
+	# if (angulo_centro !=0 and np.absolute(angulo_centro) < vals):
+	# 	girar = 'siga em frente'
+	# elif (angulo_centro !=0 and angulo_centro < -vals):
+	# 	girar = 'gire a esquerda'
+	# elif (angulo_centro !=0 and angulo_centro > vals):
+	# 	girar = 'gire a direita'
+	# elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
+	# 	girar = 'gire a direita'
+	# elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
+	# 	girar = 'gire a esquerda'	
+	# else:
+	# 	girar = 
+	girar = 0
+	if(angulo_centro == 0 and np.absolute(angulo_direita) > vals and np.absolute(angulo_esquerda) > vals):
+		movex = rospy.Publisher('channel_x', Int16, queue_size=1)
+		movex.publish(135)
+		movey = rospy.Publisher('channel_y', Int16, queue_size=1)
+		movey.publish(135)
+		girar = 'siga em frente'
+	elif (angulo_centro != 0 and np.absolute(angulo_centro) < vals):
+		move = rospy.Publisher('channel_y', Int16, queue_size=1)
+		move.publish(165)
 		girar = 'siga em frente'
 	elif (angulo_centro !=0 and angulo_centro < -vals):
-		girar = 'gire a esquerda'
-	elif (angulo_centro !=0 and angulo_centro > vals):
-		girar = 'gire a direita'
-	elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
-		girar = 'gire a direita'
-	elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
-		girar = 'gire a esquerda'	
-	else:
-		girar = 
-
-	if (angulo_centro !=0 and np.absolute(angulo_centro) < vals):
-		move = rospy.Publisher('channel_y', Int16, queue_size=1)
-    	move.publish(170)
-	elif (angulo_centro !=0 and angulo_centro < -vals):
 		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-    	move.publish(100)
+		move.publish(110)
+		girar = 'esquerda'
 	elif (angulo_centro !=0 and angulo_centro > vals):
 		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-    	move.publish(170)
+		move.publish(160)
+		girar = 'direita'
 	elif (angulo_centro == 0 and (angulo_centro < -vals or np.absolute(angulo_direita) > np.absolute(angulo_esquerda))):
 		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-    	move.publish(170)
+		move.publish(160)
+		girar = 'direita'
 	elif (angulo_centro == 0 and (angulo_centro > vals or np.absolute(angulo_direita) < np.absolute(angulo_esquerda))):
 		move = rospy.Publisher('channel_x', Int16, queue_size=1)
-    	move.publish(100)	
+		move.publish(110)
+		girar = 'esquerda'	
 	else:
 		movex = rospy.Publisher('channel_x', Int16, queue_size=1)
-    	movex.publish(135)
-    	movey = rospy.Publisher('channel_y', Int16, queue_size=1)
-    	movey.publish(135)
+		movex.publish(135)
+		movey = rospy.Publisher('channel_y', Int16, queue_size=1)
+		movey.publish(135)
+		girar = 'frente'
 #        	if np.absolute(angulo_direita) < np.absolute(angulo_esquerda):
 #			girar = 'gire a direita'
 	#		else:
@@ -356,12 +369,12 @@ def nome_bonito(orig_frame):
 	#	cv2.putText(transform,girar_direita,(20,280), font, 1,(255,255,255),2,cv2.LINE_AA)
 	#	cv2.putText(transform,girar_esquerda,(20,200), font, 1,(255,255,255),2,cv2.LINE_AA)
 	cv2.putText(transform,girar,(20,240), font, 1,(255,255,255),2,cv2.LINE_AA)
-	print('movimento:', girar)	
+	#print('movimento:', girar)	
 	cv2.imshow("Frame", transform)
 	#cv2.imshow("Fechamento", fechamento_trans)
 
 
-	key = cv2.waitKey(25)
+	key = cv2.waitKey(1)
 # 	if key == 27:
 # 			break
         
