@@ -225,7 +225,7 @@ def remove_other_color(img):
     #cv2.imshow("Mascara", mask)
     return mask
 
-def main(args):
+def main(frame):
 	#Clean previous image    
     clean_images()
     #Training phase
@@ -236,11 +236,10 @@ def main(args):
 
     #mudei para camera
     #vidcap = cv2.VideoCapture(args.file_name)
-    vidcap = cv2.VideoCapture(0)
+    #vidcap = cv2.VideoCapture(0)
 
-    fps = vidcap.get(cv2.CAP_PROP_FPS)
-    width = vidcap.get(3)  # float
-    height = vidcap.get(4) # float
+    #fps = vidcap.get(cv2.CAP_PROP_FPS)
+    #width, height = frame.shape()
 
     # Define the codec and create VideoWriter object
     #fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -263,117 +262,126 @@ def main(args):
     coordinates = []
     position = []
     #file = open("Output.txt", "w")
-    while True:
-        success,frame = vidcap.read()
-        if not success:
-            print("FINISHED")
-            break
-        width = frame.shape[1]
-        height = frame.shape[0]
-        AreaTotal= width*height
-        #frame = cv2.resize(frame, (640,int(height/(width/640))))
-        frame = cv2.resize(frame, (640,480))
+    #while True:
+        #success,frame = vidcap.read()
+        # if not success:
+        #     print("FINISHED")
+    #     break
+    width = frame.shape[1]
+    height = frame.shape[0]
+    AreaTotal= width*height
+    #frame = cv2.resize(frame, (640,int(height/(width/640))))
+    frame = cv2.resize(frame, (640,480))
 
-        print("Frame:{}".format(count))
-        #image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        coordinate, image, sign_type, text = localization(frame, args.min_size_components, args.similitary_contour_with_circle, model, count, current_sign)
-        if coordinate is not None:
-            cv2.rectangle(image, coordinate[0],coordinate[1], (255, 255, 255), 1)
-            print("Coordenadas: ",coordinate[0])
-            #area = np.sqrt(np.power(int(coordinate[0][0])-int(coordinate[1][0]),2)+np.power(int(coordinate[0][1])-int(coordinate[1][1]),2))
-            Area = np.abs(int(coordinate[0][0])-int(coordinate[1][0]))*np.abs(int(coordinate[0][1])-int(coordinate[1][1]))
-            print("Area placa:", Area)
-            print("Area Total:", AreaTotal)
-            ratio= (float(AreaTotal)/float(Area)) # 1 metro aproximadamente uma placa  de 1,5% do total ou 65.5 x maior e o frame em relacao a placa
-            print("%",ratio) # 1 metro aproximadamente 1.5%
-            distancia = ratio/65.5
-            print("Distancia",distancia)
+    print("Frame:{}".format(count))
+    #image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    coordinate, image, sign_type, text = localization(frame, args.min_size_components, args.similitary_contour_with_circle, model, count, current_sign)
+    if coordinate is not None:
+        cv2.rectangle(image, coordinate[0],coordinate[1], (255, 255, 255), 1)
+        print("Coordenadas: ",coordinate[0])
+        #area = np.sqrt(np.power(int(coordinate[0][0])-int(coordinate[1][0]),2)+np.power(int(coordinate[0][1])-int(coordinate[1][1]),2))
+        Area = np.abs(int(coordinate[0][0])-int(coordinate[1][0]))*np.abs(int(coordinate[0][1])-int(coordinate[1][1]))
+        print("Area placa:", Area)
+        print("Area Total:", AreaTotal)
+        ratio= (float(AreaTotal)/float(Area)) # 1 metro aproximadamente uma placa  de 1,5% do total ou 65.5 x maior e o frame em relacao a placa
+        print("%",ratio) # 1 metro aproximadamente 1.5%
+        distancia = ratio/65.5
+        print("Distancia",distancia)
 
-        print("Sign:{}".format(sign_type))
-        if sign_type > 0 and (not current_sign or sign_type != current_sign):
-            current_sign = sign_type
-            current_text = text
-            top = int(coordinate[0][1]*1.05)
-            left = int(coordinate[0][0]*1.05)
-            bottom = int(coordinate[1][1]*0.95)
-            right = int(coordinate[1][0]*0.95)
+    print("Sign:{}".format(sign_type))
+    if sign_type > 0 and (not current_sign or sign_type != current_sign):
+        current_sign = sign_type
+        current_text = text
+        top = int(coordinate[0][1]*1.05)
+        left = int(coordinate[0][0]*1.05)
+        bottom = int(coordinate[1][1]*0.95)
+        right = int(coordinate[1][0]*0.95)
 
-            position = [count, sign_type if sign_type <= 8 else 8, coordinate[0][0], coordinate[0][1], coordinate[1][0], coordinate[1][1]]
+        position = [count, sign_type if sign_type <= 8 else 8, coordinate[0][0], coordinate[0][1], coordinate[1][0], coordinate[1][1]]
+        cv2.rectangle(image, coordinate[0],coordinate[1], (0, 255, 0), 1)
+        font = cv2.FONT_HERSHEY_PLAIN
+        cv2.putText(image,text,(coordinate[0][0], coordinate[0][1] -15), font, 1,(0,0,255),2,cv2.LINE_4)
+        
+        if distancia > 0.4 and distancia < 1.2: #se distancia > 50 cm executa comando
+			cv2.putText(image,text,(int(width/4), int(height/2)), font, 3,(0,0,255),3,cv2.LINE_AA) # Comando
+
+        tl = [left, top]
+        br = [right,bottom]
+        print(tl, br)
+        current_size = math.sqrt(math.pow((tl[0]-br[0]),2) + math.pow((tl[1]-br[1]),2))
+        # grab the ROI for the bounding box and convert it
+        # to the HSV color space
+        roi = frame[tl[1]:br[1], tl[0]:br[0]]
+        roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        #roi = cv2.cvtColor(roi, cv2.COLOR_BGR2LAB)
+
+        # compute a HSV histogram for the ROI and store the
+        # bounding box
+        roiHist = cv2.calcHist([roi], [0], None, [16], [0, 180])
+        roiHist = cv2.normalize(roiHist, roiHist, 0, 255, cv2.NORM_MINMAX)
+        roiBox = (tl[0], tl[1], br[0], br[1])
+
+    elif current_sign:
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        backProj = cv2.calcBackProject([hsv], [0], roiHist, [0, 180], 1)
+
+        # apply cam shift to the back projection, convert the
+        # points to a bounding box, and then draw them
+        (r, roiBox) = cv2.CamShift(backProj, roiBox, termination)
+        pts = np.int0(cv2.boxPoints(r))
+        s = pts.sum(axis = 1)
+        tl = pts[np.argmin(s)]
+        br = pts[np.argmax(s)]
+        size = math.sqrt(pow((tl[0]-br[0]),2) +pow((tl[1]-br[1]),2))
+        print(size)
+
+        if  current_size < 1 or size < 1 or size / current_size > 30 or math.fabs((tl[0]-br[0])/(tl[1]-br[1])) > 2 or math.fabs((tl[0]-br[0])/(tl[1]-br[1])) < 0.5:
+            current_sign = None
+            print("Stop tracking")
+        else:
+            current_size = size
+
+        if sign_type > 0:
+            top = int(coordinate[0][1])
+            left = int(coordinate[0][0])
+            bottom = int(coordinate[1][1])
+            right = int(coordinate[1][0])
+
+            position = [count, sign_type if sign_type <= 8 else 8, left, top, right, bottom]
             cv2.rectangle(image, coordinate[0],coordinate[1], (0, 255, 0), 1)
             font = cv2.FONT_HERSHEY_PLAIN
             cv2.putText(image,text,(coordinate[0][0], coordinate[0][1] -15), font, 1,(0,0,255),2,cv2.LINE_4)
-            
-            if distancia > 0.4 and distancia < 1.2: #se distancia > 50 cm executa comando
-				cv2.putText(image,text,(int(width/4), int(height/2)), font, 3,(0,0,255),3,cv2.LINE_AA) # Comando
-
-            tl = [left, top]
-            br = [right,bottom]
-            print(tl, br)
-            current_size = math.sqrt(math.pow((tl[0]-br[0]),2) + math.pow((tl[1]-br[1]),2))
-            # grab the ROI for the bounding box and convert it
-            # to the HSV color space
-            roi = frame[tl[1]:br[1], tl[0]:br[0]]
-            roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-            #roi = cv2.cvtColor(roi, cv2.COLOR_BGR2LAB)
-
-            # compute a HSV histogram for the ROI and store the
-            # bounding box
-            roiHist = cv2.calcHist([roi], [0], None, [16], [0, 180])
-            roiHist = cv2.normalize(roiHist, roiHist, 0, 255, cv2.NORM_MINMAX)
-            roiBox = (tl[0], tl[1], br[0], br[1])
-
         elif current_sign:
-            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            backProj = cv2.calcBackProject([hsv], [0], roiHist, [0, 180], 1)
+            position = [count, sign_type if sign_type <= 8 else 8, tl[0], tl[1], br[0], br[1]]
+            cv2.rectangle(image, (tl[0], tl[1]),(br[0], br[1]), (0, 255, 0), 1)
+            font = cv2.FONT_HERSHEY_PLAIN
+            cv2.putText(image,current_text,(tl[0], tl[1] -15), font, 1,(0,0,255),2,cv2.LINE_4)
 
-            # apply cam shift to the back projection, convert the
-            # points to a bounding box, and then draw them
-            (r, roiBox) = cv2.CamShift(backProj, roiBox, termination)
-            pts = np.int0(cv2.boxPoints(r))
-            s = pts.sum(axis = 1)
-            tl = pts[np.argmin(s)]
-            br = pts[np.argmax(s)]
-            size = math.sqrt(pow((tl[0]-br[0]),2) +pow((tl[1]-br[1]),2))
-            print(size)
+    if current_sign:
+        sign_count += 1
+        coordinates.append(position)
 
-            if  current_size < 1 or size < 1 or size / current_size > 30 or math.fabs((tl[0]-br[0])/(tl[1]-br[1])) > 2 or math.fabs((tl[0]-br[0])/(tl[1]-br[1])) < 0.5:
-                current_sign = None
-                print("Stop tracking")
-            else:
-                current_size = size
-
-            if sign_type > 0:
-                top = int(coordinate[0][1])
-                left = int(coordinate[0][0])
-                bottom = int(coordinate[1][1])
-                right = int(coordinate[1][0])
-
-                position = [count, sign_type if sign_type <= 8 else 8, left, top, right, bottom]
-                cv2.rectangle(image, coordinate[0],coordinate[1], (0, 255, 0), 1)
-                font = cv2.FONT_HERSHEY_PLAIN
-                cv2.putText(image,text,(coordinate[0][0], coordinate[0][1] -15), font, 1,(0,0,255),2,cv2.LINE_4)
-            elif current_sign:
-                position = [count, sign_type if sign_type <= 8 else 8, tl[0], tl[1], br[0], br[1]]
-                cv2.rectangle(image, (tl[0], tl[1]),(br[0], br[1]), (0, 255, 0), 1)
-                font = cv2.FONT_HERSHEY_PLAIN
-                cv2.putText(image,current_text,(tl[0], tl[1] -15), font, 1,(0,0,255),2,cv2.LINE_4)
-
-        if current_sign:
-            sign_count += 1
-            coordinates.append(position)
-
-        cv2.imshow('Result', image)
-        count = count + 1
-        #Write to video
-        #out.write(image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    cv2.imshow('Result', image)
+    count = count + 1
+    #Write to video
+    #out.write(image)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        pass
+            #break
     #file.write("{}".format(sign_count))
     #for pos in coordinates:
     #    file.write("\n{} {} {} {} {} {}".format(pos[0],pos[1],pos[2],pos[3],pos[4], pos[5]))
     #print("Finish {} frames".format(count))
     #file.close()
     return 
+
+
+def passa_video(img):
+    bridge=CvBridge()
+
+    cv_image = bridge.imgmsg_to_cv2(img, "bgr8")
+    
+    nome_bonito(cv_image)
 
 
 if __name__ == '__main__':
@@ -401,5 +409,11 @@ if __name__ == '__main__':
       help= "Similitary to a circle"
       )
     
-    args = parser.parse_args()
-    main(args)
+    #args = parser.parse_args()
+    #main(args)
+
+    rospy.init_node("sign_rec", anonymous = True) 
+
+    rospy.Subscriber("camera/rgb/image_raw", Image, passa_video)
+
+    rospy.spin()
