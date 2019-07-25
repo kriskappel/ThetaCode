@@ -18,6 +18,8 @@ from joblib import dump, load
 #model = 0
 counter = 0
 
+command = rospy.Publisher('walk', String, queue_size=10)
+
 SIGNS = ["ERRO",
         "PARE",
         "GIRAR ESQUERDA",
@@ -318,6 +320,7 @@ def main(frame):
         
         if distancia > 0.4 and distancia < 1.2: #se distancia > 50 cm executa comando
 			cv2.putText(image,text,(int(width/4), int(height/2)), font, 3,(0,0,255),3,cv2.LINE_AA) # Comando
+            mov_publisher(text)
 
         tl = [left, top]
         br = [right,bottom]
@@ -388,7 +391,25 @@ def main(frame):
     #    file.write("\n{} {} {} {} {} {}".format(pos[0],pos[1],pos[2],pos[3],pos[4], pos[5]))
     #print("Finish {} frames".format(count))
     #file.close()
+
+
+
     return 
+
+
+def mov_publisher(text):
+    if text == "PARE":
+        command.publish("stop")
+    elif text == "SEGUIR EM FRENTE":
+        command.publish("goAhead 1 175")
+    elif text == "GIRAR ESQUERDA":
+        command.publish("turnLeft 90")
+    elif text == "GIRAR DIREITA":
+        command.publish("turnRight 90")
+    elif text == "GIRAR 360":
+        comman.publish("turnRight 360")
+
+
 
 
 def showIm(im_cv):
