@@ -1,0 +1,20 @@
+<MyWidget@Widget>:
+    id: my_widget
+    Label:
+        id: label_widget
+        Widget:
+            id: inner_widget
+            Label:
+                id: inner_label
+    TextInput:
+        id: text_input
+    OtherWidget:
+        id: other_widget
+
+
+<OtherWidget@Widget>
+    id: other_widget
+    Label:
+        id: other_label
+        TextInput:
+            id: other_textinput

@@ -1,0 +1,11 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Grammar for English
+ */
+
+grammar palavras;
+
+public <palavras> = ( <action> ) +;
+
+<action> = /0.1/ turn left | /0.1/ turn right |/0.1/ go ahead | /0.1/ follow me | /0.1/ dance |/0.1/ stop | /100/ error;

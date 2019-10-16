@@ -1,0 +1,11 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Grammar for English
+ */
+
+grammar confirma;
+
+public <confirma> = ( <action> ) +;
+
+<action> = yes | no;

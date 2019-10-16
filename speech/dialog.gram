@@ -1,0 +1,7 @@
+#JSGF V1.0;
+
+grammar dialog;
+
+public <basicCmd> = <action>;
+  
+  <action> = /0.1/ open |/0.1/ close |/0.1/ delete |/0.1/ move |/10/ error |/0.1/ turn |/0.1/ turn left |/0.1/ turn right |/0.1/ stop |/0.1/ go ahead;
